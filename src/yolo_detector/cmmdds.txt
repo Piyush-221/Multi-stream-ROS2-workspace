@@ -1,0 +1,51 @@
+For detection
+Terminal 1: 
+ros2 run v4l2_camera v4l2_camera_node --ros-args -p video_device:=/dev/video0
+
+Terminal 2:  (best for drill, screwdriver, plier, wrenche, hammer)
+ ros2 run yolo_detector detector \
+  --ros-args \
+  -p model_path:=/home/piyush/yolo_ws/src/yolo_detector/yolo_detector/models/best.pt \
+  -p window_name:=Tools \
+  -p conf_thresh:=0.3
+
+Terminal 3: (For any other object)
+ros2 run yolo_detector detector \
+  --ros-args \
+  -p model_path:=/home/piyush/yolo_ws/src/yolo_detector/yolo_detector/models/yolov8n.pt \
+  -p window_name:=Tools \
+  -p conf_thresh:=0.3
+
+
+
+
+
+
+
+
+For two diff ws:
+Terminal 1:
+source /opt/ros/humble/setup.bash
+source ~/yolo_ws/install/setup.bash
+source ~/IRC26_ws/install/setup.bash
+
+ros2 run v4l2_camera v4l2_camera_node --ros-args -p video_device:=/dev/video0
+
+Terminal2: (For model of 5 tools. Replace best.pt with yolov8n.pt for other)
+source /opt/ros/humble/setup.bash
+source ~/yolo_ws/install/setup.bash
+source ~/IRC26_ws/install/setup.bash
+
+ ros2 run yolo_detector detector \
+  --ros-args \
+  -p model_path:=/home/piyush/yolo_ws/src/yolo_detector/yolo_detector/models/best.pt \
+  -p window_name:=Tools \
+  -p conf_thresh:=0.3
+
+Terminal 3: (For joystick)
+source /opt/ros/humble/setup.bash
+source ~/yolo_ws/install/setup.bash
+source ~/IRC26_ws/install/setup.bash
+
+ros2 run joy_control joy_control
+
