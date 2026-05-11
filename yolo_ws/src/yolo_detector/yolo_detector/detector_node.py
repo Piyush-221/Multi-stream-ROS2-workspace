@@ -12,9 +12,8 @@ class YoloDetector(Node):
     def __init__(self):
         super().__init__('yolo_detector')
 
-        # ----------------------------
-        # Declare parameters
-        # ----------------------------
+        # Parameters
+        
         self.declare_parameter("model_path", "")
         self.declare_parameter("window_name", "YOLO")
         self.declare_parameter("conf_thresh", 0.25)
@@ -22,9 +21,9 @@ class YoloDetector(Node):
         self.declare_parameter("max_fps", 0.0)
         self.declare_parameter("image_topic", "/image_raw")
 
-        # ----------------------------
-        # Read parameters
-        # ----------------------------
+        
+        # Reading parameters
+        
         model_path = self.get_parameter("model_path").value
         self.window_name = self.get_parameter("window_name").value
         self.conf_thresh = self.get_parameter("conf_thresh").value
@@ -36,9 +35,9 @@ class YoloDetector(Node):
             self.get_logger().error("model_path parameter is required!")
             raise RuntimeError("model_path parameter not set")
 
-        # ----------------------------
+        
         # Logging
-        # ----------------------------
+        
         self.get_logger().info(f"Loaded model: {model_path}")
         self.get_logger().info(f"Window name: {self.window_name}")
         self.get_logger().info(f"Confidence threshold: {self.conf_thresh}")
@@ -46,20 +45,18 @@ class YoloDetector(Node):
         self.get_logger().info(f"Max FPS: {self.max_fps}")
         self.get_logger().info(f"Subscribed image topic: {self.image_topic}")
 
-        # ----------------------------
-        # CV Bridge
-        # ----------------------------
-        self.bridge = CvBridge()
+    
+        self.bridge = CvBridge()     #Bridge
 
-        # ----------------------------
+        
         # Frame control
-        # ----------------------------
+        
         self.frame_count = 0
         self.last_inference_time = self.get_clock().now()
 
-        # ----------------------------
-        # Subscriber (dynamic camera topic)
-        # ----------------------------
+        
+        # Camera topic subscriber 
+        
         self.subscription = self.create_subscription(
             Image,
             self.image_topic,
@@ -67,9 +64,9 @@ class YoloDetector(Node):
             10
         )
 
-        # ----------------------------
-        # Publisher (dynamic topic)
-        # ----------------------------
+        
+        # Publisher
+        
         topic_name = f"/yolo/{self.window_name.lower()}/detections"
         self.publisher = self.create_publisher(
             ToolDetectionArray,
@@ -77,25 +74,25 @@ class YoloDetector(Node):
             10
         )
 
-        # ----------------------------
-        # Load YOLO model
-        # ----------------------------
+        
+        # Loading the YOLO model
+        
         self.model = YOLO(model_path)
 
         self.get_logger().info("YOLO Detector Node Started")
 
     def image_callback(self, msg):
 
-        # ----------------------------
+        
         # Frame skipping
-        # ----------------------------
+        
         self.frame_count += 1
         if self.frame_count % self.skip_frames != 0:
             return
 
-        # ----------------------------
+        
         # FPS limiting
-        # ----------------------------
+        
         if self.max_fps > 0:
             now = self.get_clock().now()
             dt = (now - self.last_inference_time).nanoseconds / 1e9
@@ -103,14 +100,14 @@ class YoloDetector(Node):
                 return
             self.last_inference_time = now
 
-        # ----------------------------
-        # Convert ROS image → OpenCV
-        # ----------------------------
+        
+        # Convert ROS image to OpenCV
+        
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
 
-        # ----------------------------
+        
         # YOLO inference
-        # ----------------------------
+        
         results = self.model(frame)[0]
 
         detection_array = ToolDetectionArray()
@@ -150,14 +147,14 @@ class YoloDetector(Node):
 
             detection_array.detections.append(det)
 
-        # ----------------------------
+        
         # Publish detections
-        # ----------------------------
+                              
         self.publisher.publish(detection_array)
 
-        # ----------------------------
+        
         # Display window
-        # ----------------------------
+        
         cv2.imshow(self.window_name, frame)
         cv2.waitKey(1)
 
